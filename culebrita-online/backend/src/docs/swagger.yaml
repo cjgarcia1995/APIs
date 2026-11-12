@@ -1,0 +1,244 @@
+
+openapi: 3.0.3
+
+info:
+  title: Culebrita Online API
+  description: API REST para el juego multijugador Culebrita Online.
+  version: 1.0.0
+  contact:
+    name: Culebrita Online
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor local de desarrollo
+
+tags:
+  - name: Sistema
+    description: Estado del servidor
+  - name: Autenticación
+    description: Registro e inicio de sesión
+  - name: Usuarios
+    description: Información del jugador
+  - name: Apariencias
+    description: Catálogo de apariencias
+  - name: Tienda
+    description: Compra y equipamiento
+  - name: Juego
+    description: Clasificación
+  - name: Administración
+    description: Gestión administrativa
+
+paths:
+  /api/health:
+    get:
+      tags:
+        - Sistema
+      summary: Comprobar estado del servidor
+      responses:
+        '200':
+          description: Servidor funcionando
+
+  /api/auth/register:
+    post:
+      tags:
+        - Autenticación
+      summary: Registrar un usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+                - confirmPassword
+              properties:
+                username:
+                  type: string
+                  example: jugador_nuevo
+                password:
+                  type: string
+                  example: Prueba123!
+                confirmPassword:
+                  type: string
+                  example: Prueba123!
+      responses:
+        '201':
+          description: Usuario registrado
+        '400':
+          description: Datos inválidos
+        '409':
+          description: Nombre de usuario existente
+
+  /api/auth/login:
+    post:
+      tags:
+        - Autenticación
+      summary: Iniciar sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: jugador_prueba
+                password:
+                  type: string
+                  example: Prueba123!
+      responses:
+        '200':
+          description: Inicio de sesión correcto
+        '401':
+          description: Credenciales incorrectas
+
+  /api/users/me:
+    get:
+      tags:
+        - Usuarios
+      summary: Consultar perfil del usuario autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Perfil obtenido
+        '401':
+          description: No autenticado
+
+  /api/skins:
+    get:
+      tags:
+        - Apariencias
+      summary: Consultar apariencias disponibles
+      responses:
+        '200':
+          description: Catálogo obtenido
+
+  /api/shop/buy:
+    post:
+      tags:
+        - Tienda
+      summary: Comprar una apariencia
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - skinId
+              properties:
+                skinId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Compra realizada
+        '400':
+          description: Compra no válida
+        '401':
+          description: No autenticado
+
+  /api/shop/equip:
+    post:
+      tags:
+        - Tienda
+      summary: Equipar una apariencia
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - skinId
+              properties:
+                skinId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Apariencia equipada
+        '401':
+          description: No autenticado
+
+  /api/game/leaderboard:
+    get:
+      tags:
+        - Juego
+      summary: Consultar clasificación de jugadores
+      responses:
+        '200':
+          description: Clasificación obtenida
+
+  /api/admin/users:
+    get:
+      tags:
+        - Administración
+      summary: Consultar usuarios
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Usuarios obtenidos
+        '401':
+          description: No autenticado
+        '403':
+          description: Sin permisos administrativos
+
+  /api/admin/ban/{id}:
+    post:
+      tags:
+        - Administración
+      summary: Bloquear un usuario
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Usuario bloqueado
+        '403':
+          description: Sin permisos administrativos
+
+  /api/admin/unban/{id}:
+    post:
+      tags:
+        - Administración
+      summary: Desbloquear un usuario
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Usuario desbloqueado
+        '403':
+          description: Sin permisos administrativos
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
